@@ -46,11 +46,20 @@
   }
 
   class PBOFile {
+    public string $name;
+    public bool $error;
+    public string $errorReason;
     private PBOHeader $header;
     private string $filepath;
 
+    private static $errorReasons = array(
+      'UNREADABLE_FILE' => 'Błąd odczytu pliku pbo. Sprawdź czy plik nie jest zbinaryzowany lub zapisany w formacie skompresowanym.'
+    );
+
     function __construct(string $filepath) {
+      $this->error = false;
       $this->filepath = $filepath;
+      $this->name = basename($filepath, '.pbo');
       $this->header = new PBOHeader();
 
       $pboContent = file_get_contents($filepath);
@@ -58,11 +67,25 @@
       while($headerEntry = $this->getHeaderEntry($pboContent, $this->header->length)) {
           $this->header->addEntry($headerEntry);
       }
+
+      if (count($this->header->entries) == 0) {
+        $this->error = true;
+        $this->errorReason = self::$errorReasons['UNREADABLE_FILE'];
+      }
     }
 
     private function getHeaderEntry(string $pboContent, int $offset = 0): ?PboHeaderEntry {
         $entryData = unpack('Z*', $pboContent, $offset);
-        if(!isset($entryData[1]) || $entryData[1] == "") return null;
+
+        if(!isset($entryData[1]) || $entryData[1] == "") {
+          // Some pbo files start with empty entry, try reading next
+          if ($offset == 0) {
+            $this->header->length = HEADER_ENTRY_END_OFFSET + 1;
+            return $this->getHeaderEntry($pboContent, $this->header->length);
+          }
+
+          return null;
+        };
         $filename = $entryData[1];
 
         return new PboHeaderEntry($filename, array_values(unpack('L5', $pboContent, $offset + strlen($filename) + 1)));
