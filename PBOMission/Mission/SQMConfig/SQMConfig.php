@@ -43,7 +43,7 @@ class SQMConfig {
 
   private static $errorReasons = array(
     'STRUCTURE_ERROR' => 'Błąd składniowy w pliku misji (mission.sqm).',
-    'BINARIZED_FILE' => 'Błąd odczytu pliku misji (mission.sqm). Prawdopodobnie plik jest zbinaryzowany.'
+    'BINARIZED_FILE' => 'Błąd odczytu pliku misji (mission.sqm). Prawdopodobnie plik jest zbinaryzowany.',
   );
 
   function __construct($data) {

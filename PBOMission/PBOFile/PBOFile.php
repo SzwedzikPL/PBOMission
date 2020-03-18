@@ -49,11 +49,14 @@
     public string $name;
     public bool $error;
     public string $errorReason;
+
     private PBOHeader $header;
     private string $filepath;
 
+    public array $info;
+
     private static $errorReasons = array(
-      'UNREADABLE_FILE' => 'Błąd odczytu pliku pbo. Sprawdź czy plik nie jest zbinaryzowany lub zapisany w formacie skompresowanym.'
+      'UNREADABLE_FILE' => 'Błąd odczytu pliku pbo. Sprawdź czy plik nie jest zbinaryzowany lub zapisany w formacie skompresowanym.',
     );
 
     function __construct(string $filepath) {
@@ -72,6 +75,9 @@
         $this->error = true;
         $this->errorReason = self::$errorReasons['UNREADABLE_FILE'];
       }
+
+      // Calc pbo info
+      $this->info = array();
     }
 
     private function getHeaderEntry(string $pboContent, int $offset = 0): ?PboHeaderEntry {
