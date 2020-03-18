@@ -88,13 +88,6 @@ class SQMConfig {
     unset($this->currentAttribute);
     unset($this->lines);
     unset($this->index);
-
-    //Remove unused data from config
-    if (isset($this->root->classes['EditorData']))
-      unset($this->root->classes['EditorData']);
-
-    if (isset($this->root->classes['AddonsMetaData']))
-      unset($this->root->classes['AddonsMetaData']);
   }
 
   private function parseLine($line) {
@@ -103,6 +96,7 @@ class SQMConfig {
     // Remove semicolon ending
     if ($line[-1] == ';') $line = substr($line, 0, -1);
 
+    // Read end of class/attribute
     if ($line == '}') {
       if ($this->mode == READ_MODE_CLASS) {
         // Check if we are within structure
@@ -119,6 +113,7 @@ class SQMConfig {
       return;
     }
 
+    // Read attribute value
     if ($this->mode == READ_MODE_ATTRIBUTE) {
       // Check for safety is attr an array, should be in 100% of cases
       if ($this->currentAttribute->isArray) {
@@ -131,6 +126,7 @@ class SQMConfig {
       return;
     }
 
+    // Read new class
     if (substr($line, 0, 6) == 'class ') {
       $this->mode = 'class';
       $class = new SQMClass(substr($line, 6), $this->currentClass);
@@ -144,6 +140,7 @@ class SQMConfig {
       return;
     }
 
+    // Read attribute
     if (strpos($line, '=') !== false) {
       $attributeArray = explode('=', $line, 2);
 

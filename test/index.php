@@ -3,7 +3,7 @@
 
   require_once('../PBOMission/PBOMission.php');
 
-  $pboMission = new PBOMission('sqm_test_mission.Stratis.pbo');
+  $pboMission = new PBOMission('parser_test_mission.Stratis.pbo');
 
   if ($pboMission->error) {
     return print($pboMission->errorReason);

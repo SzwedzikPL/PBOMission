@@ -12,6 +12,7 @@ class PBOMission {
   private static $errorReasons = array(
     'EMPTY_MISSION' => 'Błąd odczytu pliku misji (mission.sqm) lub jego brak.',
     'INVALID_MAP' => 'Niepoprawna nazwa mapy. Sprawdź nazwę pliku.',
+    'XML_ERROR' => 'Błąd parsowania xml (stringtable.xml). Powód: %s'
   );
 
   function __construct(string $filepath) {
@@ -38,14 +39,24 @@ class PBOMission {
       return $this->errorReason = self::$errorReasons['INVALID_MAP'];
     }
 
-    $this->mission = new Mission($missionContent, $map);
+    $stringtableContent = $this->pbo->getFileContent('stringtable.xml');
+    $stringtable = null;
+    if (isset($stringtableContent) && $stringtableContent != '') {
+      libxml_use_internal_errors(true);
+
+      $stringtable = simplexml_load_string($stringtableContent);
+      foreach (libxml_get_errors() as $error) {
+        $this->error = true;
+        return $this->errorReason = sprintf(self::$errorReasons['XML_ERROR'], $error->message);
+      }
+    }
+
+    $this->mission = new Mission($missionContent, $map, $stringtable);
 
     if ($this->mission->error) {
       $this->error = true;
       return $this->errorReason = $this->mission->errorReason;
     }
-
-    //$stringtable = $pbo->getFileContent('stringtable.xml');
   }
 
   public function export(): array {

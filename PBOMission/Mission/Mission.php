@@ -19,7 +19,7 @@
     public array $resistanceSettings;
     public array $stats;
 
-    function __construct(string $data, string $map) {
+    function __construct(string $data, string $map, ?SimpleXMLElement $stringtable) {
       $this->error = false;
       $this->map = $map;
 
@@ -32,8 +32,12 @@
         return;
       };
 
-      // Parse mission
+      // Prepare stringtable for use in mission parser
+      if (isset($stringtable)) {
 
+      }
+
+      // Parse mission
 
     }
 
