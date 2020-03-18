@@ -24,6 +24,7 @@ class PBOMission {
       return $this->errorReason = $this->pbo->errorReason;
     }
 
+    // Get mission config content
     $missionContent = $this->pbo->getFileContent('mission.sqm');
 
     if (!isset($missionContent) || $missionContent == '') {
@@ -31,6 +32,16 @@ class PBOMission {
       return $this->errorReason = self::$errorReasons['EMPTY_MISSION'];
     }
 
+    // Parse mission config
+    $missionConfig = new SQMConfig($missionContent);
+
+    if ($missionConfig->error) {
+      $this->error = $missionConfig->error;
+      $this->errorReason = $missionConfig->errorReason;
+      return;
+    };
+
+    // Get mission map
     $nameElements = explode('.', $this->pbo->name);
     $map = end($nameElements);
 
@@ -39,6 +50,7 @@ class PBOMission {
       return $this->errorReason = self::$errorReasons['INVALID_MAP'];
     }
 
+    // Parse stringtable (if present)
     $stringtableContent = $this->pbo->getFileContent('stringtable.xml');
     $stringtable = null;
     if (isset($stringtableContent) && $stringtableContent != '') {
@@ -51,7 +63,8 @@ class PBOMission {
       }
     }
 
-    $this->mission = new Mission($missionContent, $map, $stringtable);
+    // Parse mission
+    $this->mission = new Mission($missionConfig, $map, $stringtable);
 
     if ($this->mission->error) {
       $this->error = true;

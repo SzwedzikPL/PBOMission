@@ -19,18 +19,9 @@
     public array $resistanceSettings;
     public array $stats;
 
-    function __construct(string $data, string $map, ?SimpleXMLElement $stringtable) {
+    function __construct(SQMConfig $config, string $map, ?SimpleXMLElement $stringtable) {
       $this->error = false;
       $this->map = $map;
-
-      // Get mission config
-      $config = new SQMConfig($data);
-
-      if ($config->error) {
-        $this->error = $config->error;
-        $this->errorReason = $config->errorReason;
-        return;
-      };
 
       // Prepare stringtable for use in mission parser
       if (isset($stringtable)) {
