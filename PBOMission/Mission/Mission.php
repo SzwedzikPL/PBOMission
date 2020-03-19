@@ -82,21 +82,18 @@
         $this->time = sprintf('%s:%s', $attributes['hour']->value, sprintf("%02d", $minute));
       }
 
-      $weather = array();
-      foreach (array(
-        'startWeather' => 'overcast',
-        'startWind' => 'wind',
-        'startGust' => 'gust',
-        'startFog' => 'fog',
-        'startFogDecay' => 'fogDecay',
-        'startRain' => 'rain',
-        'startLightnings' => 'lightnings',
-        'startWaves' => 'waves',
-      ) as $attrKey => $key) {
-        if (isset($attributes[$attrKey])) $weather[$key] = $attributes[$attrKey]->value;
+      $weather = array('start' => array(), 'forecast' => array());
+      foreach (array('weather','wind','gust','fog','fogDecay','rain','lightnings','waves') as $configKey) {
+        foreach (array('start','forecast') as $typeKey) {
+          $key = $typeKey.ucfirst($configKey);
+          if (isset($attributes[$key])) $weather[$typeKey][$configKey] = $attributes[$key]->value;
+        }
       }
+      // Arma saves time of weather changes in seconds (but sometimes is float "becouse Arma")
+      // Range from 30min to 8h
+      if (isset($attributes['timeOfChanges'])) $weather['timeOfChanges'] = gmdate("H:i:s", floor($attributes['timeOfChanges']->value));
 
-      if (count($weather) > 0) $this->weather = $weather;
+      if (count($weather['start']) > 0) $this->weather = $weather;
     }
 
     private function parseScenarioData(SQMCLass $scenarioData) {

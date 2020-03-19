@@ -68,7 +68,7 @@
 
       $pboContent = file_get_contents($filepath);
 
-      while($headerEntry = $this->getHeaderEntry($pboContent, $this->header->length)) {
+      while ($headerEntry = $this->getHeaderEntry($pboContent, $this->header->length)) {
           $this->header->addEntry($headerEntry);
       }
 
@@ -93,7 +93,7 @@
 
           return null;
         }
-        
+
         $filename = $entryData[1];
         return new PboHeaderEntry($filename, array_values(unpack('L5', $pboContent, $offset + strlen($filename) + 1)));
     }
