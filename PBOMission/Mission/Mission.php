@@ -18,11 +18,11 @@
     private string $time;
     private string $author;
     private int $slotCount;
-    private array $weatherSettings;
+    private array $weather;
     private array $dependencies;
     private array $groups;
     private array $markers;
-    private array $resistanceSettings;
+    private array $resistance;
     private array $stats;
     private bool $curatorPresent;
     private array $curators;
@@ -60,8 +60,41 @@
 
     }
 
-    private function parseIntel(SQMCLass $entities) {
+    private function parseIntel(SQMCLass $intel) {
+      $attributes = $intel->attributes;
 
+      if (isset($attributes['briefingName']))
+        $this->name = $this->translate($attributes['briefingName']->value);
+
+      if (isset($attributes['year'], $attributes['month'], $attributes['day'])) $this->date = sprintf(
+        '%s-%s-%s', $attributes['year']->value,
+        sprintf("%02d", $attributes['month']->value),
+        sprintf("%02d", $attributes['day']->value)
+      );
+
+      if (isset($attributes['hour'], $attributes['minute'])) {
+        $minute = $attributes['minute']->value;
+        // Arma saves minutes after 30 as negative values
+        if ($minute < 0) $minute = 60 + $minute;
+
+        $this->time = sprintf('%s:%s', $attributes['hour']->value, sprintf("%02d", $minute));
+      }
+
+      $weather = array();
+      foreach (array(
+        'startWeather' => 'overcast',
+        'startWind' => 'wind',
+        'startGust' => 'gust',
+        'startFog' => 'fog',
+        'startFogDecay' => 'fogDecay',
+        'startRain' => 'rain',
+        'startLightnings' => 'lightnings',
+        'startWaves' => 'waves',
+      ) as $attrKey => $key) {
+        if (isset($attributes[$attrKey])) $weather[$key] = $attributes[$attrKey]->value;
+      }
+
+      if (count($weather) > 0) $this->weather = $weather;
     }
 
     private function parseScenarioData(SQMCLass $scenarioData) {
@@ -85,11 +118,9 @@
       $data = array();
 
       // Simle values
-      if (isset($this->name)) $data['name'] = $this->name;
-      if (isset($this->description)) $data['description'] = $this->description;
-      if (isset($this->author)) $data['author'] = $this->author;
-      if (isset($this->date)) $data['date'] = $this->date;
-      if (isset($this->time)) $data['time'] = $this->time;
+      foreach(array('name','description','author','date','time','weather') as $key) {
+        if (isset($this->{$key})) $data[$key] = $this->{$key};
+      }
 
       return $data;
     }
