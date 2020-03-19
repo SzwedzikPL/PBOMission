@@ -78,7 +78,16 @@
       }
 
       // Calc pbo info
-      $this->info = array();
+      $this->info = array(
+        'name' => $this->name.'.pbo',
+        'size' => PBOMissionHelper::getReadableSize(filesize($filepath)),
+        'files' => array_map(function($entry) {
+          return array(
+            'path' => $entry->filename,
+            'size' => PBOMissionHelper::getReadableSize($entry->dataSize),
+            'timestamp' => date('Y-m-d h:i:s',$entry->timestamp)
+          );}, $this->header->entries)
+      );
     }
 
     private function getHeaderEntry(string $pboContent, int $offset = 0): ?PboHeaderEntry {

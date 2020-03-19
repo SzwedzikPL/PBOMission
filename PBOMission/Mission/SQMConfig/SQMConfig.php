@@ -1,7 +1,7 @@
 <?php
 
-define('READ_MODE_CLASS', 0);
-define('READ_MODE_ATTRIBUTE', 1);
+define('SQM_READ_MODE_CLASS', 0);
+define('SQM_READ_MODE_ATTRIBUTE', 1);
 
 class SQMAttribute  {
   public string $name;
@@ -17,26 +17,50 @@ class SQMAttribute  {
 
 class SQMClass {
   public string $name;
-  public array $classes;
-  public array $attributes;
+  public array $classes = array();
+  public array $attributes = array();
   public ?SQMClass $parentClass;
 
   function __construct(string $name, ?SQMClass $parentClass) {
     $this->name = $name;
     $this->parentClass = $parentClass;
-    $this->classes = array();
-    $this->attributes = array();
+  }
+
+  public function hasClass(string $key): bool {
+    return isset($this->classes[$key]);
+  }
+
+  public function class(string $key): ?SQMClass {
+    if (!$this->hasClass($key)) return null;
+    return $this->classes[$key];
+  }
+
+  public function hasAttribute(string $key): bool {
+    return isset($this->attributes[$key]);
+  }
+
+  public function hasAttributes(): bool {
+    $arguments = func_get_args();
+    foreach ($arguments as $key) {
+      if (!$this->hasAttribute($key)) return false;
+    }
+    return true;
+  }
+
+  public function attribute(string $key, $default = null) {
+    if (!$this->hasAttribute($key)) return $default;
+    return $this->attributes[$key]->value;
   }
 }
 
 class SQMConfig {
   public SQMClass $root;
   private array $lines;
-  private int $index;
+  private int $index = 0;
   private string $mode;
   private SQMClass $currentClass;
   private SQMAttribute $currentAttribute;
-  private array $classes;
+  private array $classes = array();
 
   public bool $error = false;
   public string $errorReason;
@@ -55,12 +79,10 @@ class SQMConfig {
     }
 
     $this->lines = array_map('trim', preg_split("/[\r\n]+/", $data));
-    $this->index = 0;
-
     $this->root = new SQMClass('_root_', null);
     $this->classes[] = $this->root;
     $this->currentClass = $this->root;
-    $this->mode = READ_MODE_CLASS;
+    $this->mode = SQM_READ_MODE_CLASS;
 
     // Parse config
     while (!$this->error && array_key_exists($this->index, $this->lines)) {
@@ -78,9 +100,7 @@ class SQMConfig {
     }
 
     // Cleanup temporary data & references
-    foreach ($this->classes as $class) {
-    	unset($class->parentClass);
-    }
+    foreach ($this->classes as $class) unset($class->parentClass);
 
     unset($this->classes);
     unset($this->currentClass);
@@ -97,7 +117,7 @@ class SQMConfig {
 
     // Read end of class/attribute
     if ($line == '}') {
-      if ($this->mode == READ_MODE_CLASS) {
+      if ($this->mode == SQM_READ_MODE_CLASS) {
         // Check if we are within structure
         if ($this->currentClass->parentClass == null) {
           $this->error = true;
@@ -108,12 +128,12 @@ class SQMConfig {
         $this->currentClass = $this->currentClass->parentClass;
       }
 
-      $this->mode = READ_MODE_CLASS;
+      $this->mode = SQM_READ_MODE_CLASS;
       return;
     }
 
     // Read attribute value
-    if ($this->mode == READ_MODE_ATTRIBUTE) {
+    if ($this->mode == SQM_READ_MODE_ATTRIBUTE) {
       // Check for safety is attr an array, should be in 100% of cases
       if ($this->currentAttribute->isArray) {
         if ($line[-1] == ',') $line = substr($line, 0, -1);
@@ -149,7 +169,7 @@ class SQMConfig {
       $attribute = new SQMAttribute($attributeArray[0], $isArray);
 
       if ($isMultiLineArray) {
-        $this->mode = READ_MODE_ATTRIBUTE;
+        $this->mode = SQM_READ_MODE_ATTRIBUTE;
         $this->currentAttribute = $attribute;
         // Skip array entry line
         $this->index += 1;
