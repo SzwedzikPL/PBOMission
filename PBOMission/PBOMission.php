@@ -6,7 +6,7 @@ require_once('Mission/Mission.php');
 class PBOMission {
   public PBOFile $pbo;
   public Mission $mission;
-  public bool $error;
+  public bool $error = false;
   public string $errorReason;
 
   private static $errorReasons = array(
@@ -16,7 +16,6 @@ class PBOMission {
   );
 
   function __construct(string $filepath) {
-    $this->error = false;
     $this->pbo = new PBOFile($filepath);
 
     if ($this->pbo->error) {
@@ -50,26 +49,54 @@ class PBOMission {
       return $this->errorReason = self::$errorReasons['INVALID_MAP'];
     }
 
-    // Parse stringtable (if present)
-    $stringtableContent = $this->pbo->getFileContent('stringtable.xml');
-    $stringtable = null;
-    if (isset($stringtableContent) && $stringtableContent != '') {
-      libxml_use_internal_errors(true);
-
-      $stringtable = simplexml_load_string($stringtableContent);
-      foreach (libxml_get_errors() as $error) {
-        $this->error = true;
-        return $this->errorReason = sprintf(self::$errorReasons['XML_ERROR'], $error->message);
-      }
-    }
+    // Parse stringtable xml (if present)
+    $stringtable = $this->getStringtable($this->pbo->getFileContent('stringtable.xml'));
+    if ($this->error) return;
 
     // Parse mission
-    $this->mission = new Mission($missionConfig, $map, $stringtable);
+    $this->mission = new Mission($missionConfig->root, $map, $stringtable);
 
     if ($this->mission->error) {
       $this->error = true;
       return $this->errorReason = $this->mission->errorReason;
     }
+  }
+
+  private function getStringtable(?string $xmlContent): ?array {
+    if (!isset($xmlContent) || $xmlContent == '') return null;
+    libxml_use_internal_errors(true);
+
+    $xmlObject = simplexml_load_string($xmlContent);
+    foreach (libxml_get_errors() as $error) {
+      $this->error = true;
+      $this->errorReason = sprintf(self::$errorReasons['XML_ERROR'], $error->message);
+      return null;
+    }
+
+    $keys = $xmlObject->xpath('/Project/Package/Key');
+    if ($keys === false) return null;
+
+    $stringtable = array();
+    $langs = array('Original', 'Polish', 'English');
+
+    foreach ($keys as $key) {
+      $attributes = $key->attributes();
+      if ($attributes['ID'] == null) continue;
+      $id = (string) $attributes['ID'];
+
+      foreach ($langs as $lang) {
+        if ($key->{$lang} == null) continue;
+
+        $value = (string) $key->{$lang};
+        if ($value == '') continue;
+
+        $stringtable[$id] = $value;
+        break;
+      }
+    }
+
+    if (count($stringtable) == 0) return null;
+    return $stringtable;
   }
 
   public function export(): array {

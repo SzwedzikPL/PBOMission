@@ -30,7 +30,7 @@ class SQMClass {
 }
 
 class SQMConfig {
-  private SQMClass $root;
+  public SQMClass $root;
   private array $lines;
   private int $index;
   private string $mode;
@@ -38,7 +38,7 @@ class SQMConfig {
   private SQMAttribute $currentAttribute;
   private array $classes;
 
-  public bool $error;
+  public bool $error = false;
   public string $errorReason;
 
   private static $errorReasons = array(
@@ -54,7 +54,6 @@ class SQMConfig {
       return;
     }
 
-    $this->error = false;
     $this->lines = array_map('trim', preg_split("/[\r\n]+/", $data));
     $this->index = 0;
 

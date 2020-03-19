@@ -33,6 +33,7 @@
     private int $currentDataOffset = 0;
 
     public function addEntry(PBOHeaderEntry $entry) {
+      // Set offset for reading this entry data
       $entry->dataOffset = $this->currentDataOffset;
 
       // Update data offset for next entry
@@ -41,13 +42,14 @@
       // Update header length
       $this->length += $entry->length;
 
+      // Add entry
       $this->entries[$entry->filename] = $entry;
     }
   }
 
   class PBOFile {
     public string $name;
-    public bool $error;
+    public bool $error = false;
     public string $errorReason;
 
     private PBOHeader $header;
@@ -60,7 +62,6 @@
     );
 
     function __construct(string $filepath) {
-      $this->error = false;
       $this->filepath = $filepath;
       $this->name = basename($filepath, '.pbo');
       $this->header = new PBOHeader();
@@ -83,7 +84,7 @@
     private function getHeaderEntry(string $pboContent, int $offset = 0): ?PboHeaderEntry {
         $entryData = unpack('Z*', $pboContent, $offset);
 
-        if(!isset($entryData[1]) || $entryData[1] == "") {
+        if (!isset($entryData[1]) || $entryData[1] == "") {
           // Some pbo files start with empty entry, try reading next
           if ($offset == 0) {
             $this->header->length = HEADER_ENTRY_END_OFFSET + 1;
@@ -91,14 +92,14 @@
           }
 
           return null;
-        };
+        }
+        
         $filename = $entryData[1];
-
         return new PboHeaderEntry($filename, array_values(unpack('L5', $pboContent, $offset + strlen($filename) + 1)));
     }
 
     public function getFileContent(string $filename): ?string {
-      if(!isset($this->header->entries[$filename])) return null;
+      if (!isset($this->header->entries[$filename])) return null;
 
       $pboContent = file_get_contents($this->filepath);
 
