@@ -100,7 +100,10 @@ class PBOMission {
   }
 
   public function export(): array {
+    if ($this->error) return array('error' => true, 'errorReason' => $this->errorReason);
+
     return array(
+      'error' => false,
       'pbo' => $this->pbo->info,
       'mission' => $this->mission->export()
     );

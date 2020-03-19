@@ -9,28 +9,29 @@
     public bool $error = false;
     public string $errorReason;
 
-    private array $stringtable;
-    private bool $hasStringtable = false;
     private string $name;
     private string $map;
     private string $description;
     private string $date;
     private string $time;
     private string $author;
-    private int $slotCount;
+    private int $slotCount = 0;
     private array $weather;
     private array $dependencies;
-    private array $groups;
-    private array $markers;
-    private array $resistance;
-    private array $stats;
-    private bool $curatorPresent;
+    private array $groups = array();
+    private array $markers = array();
+    private array $resistance = array();
+    private array $stats = array();
+    private bool $curatorPresent = false;
     private array $curators;
+    private bool $hasStringtable = false;
+    private array $stringtable;
 
     function __construct(SQMClass $config, string $map, ?array $stringtable) {
       $this->map = $map;
 
       if (isset($stringtable)) {
+        // Using hasStringtable for faster exit from translate function
         $this->hasStringtable = true;
         $this->stringtable = $stringtable;
       }
@@ -67,9 +68,10 @@
         $this->name = $this->translate($attributes['briefingName']->value);
 
       if (isset($attributes['year'], $attributes['month'], $attributes['day'])) $this->date = sprintf(
-        '%s-%s-%s', $attributes['year']->value,
-        sprintf("%02d", $attributes['month']->value),
-        sprintf("%02d", $attributes['day']->value)
+        '%04d-%02d-%02d',
+        $attributes['year']->value,
+        $attributes['month']->value,
+        $attributes['day']->value,
       );
 
       if (isset($attributes['hour'], $attributes['minute'])) {
@@ -118,7 +120,7 @@
       $data = array();
 
       // Simle values
-      foreach(array('name','description','author','date','time','weather') as $key) {
+      foreach(array('name','map','description','author','date','time','weather','dependencies','slotCount','curatorPresent') as $key) {
         if (isset($this->{$key})) $data[$key] = $this->{$key};
       }
 
