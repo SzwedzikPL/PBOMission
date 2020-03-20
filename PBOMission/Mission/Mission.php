@@ -61,14 +61,12 @@
       // Parse mission
       $this->dependencies = $config->attribute('addons[]');
 
-      if ($config->hasClass('ScenarioData')) {
-        $scenarioData = $config->class('ScenarioData');
+      if ($scenarioData = $config->class('ScenarioData')) {
         $this->author = $scenarioData->attribute('author');
         $this->description = $this->translate($scenarioData->attribute('overviewText'));
       }
 
-      if ($config->hasClass('Mission')) {
-        $mission = $config->class('Mission');
+      if ($mission = $config->class('Mission')) {
         $this->parseIntel($mission->class('Intel'));
         $this->parseEntities($mission->class('Entities'));
       }
@@ -76,7 +74,6 @@
       // Process vehicle crew links
       foreach ($this->groups as $group) {
         if (!$group->crewLinks) continue;
-
         foreach ($group->crewLinks as $unitId => $vehicleId) {
           if (!isset($this->entities[$unitId], $this->entities[$vehicleId])) continue;
           $this->entities[$unitId]->vehicle = $this->entities[$vehicleId]->class;
@@ -85,8 +82,9 @@
 
       // Process curator module owners
       foreach ($this->curatorVariables as $curatorVariable) {
-        if (!isset($unitVariables[$curatorVariable])) continue;
-        $unitVariables[$curatorVariable]->curator = true;
+        if (!isset($this->unitVariables[$curatorVariable])) continue;
+        $this->unitVariables[$curatorVariable]->curator = true;
+        $this->curatorPresent = true;
       }
 
       // Cleanup temporary data
@@ -98,6 +96,7 @@
     private function parseEntities(?SQMCLass $entities) {
       if (!isset($entities)) return;
 
+      // Prep unit default weapons array for unit parser
       global $unitDefaultWeapons;
       $unitDefaultWeapons = parse_ini_file(__DIR__.DIRECTORY_SEPARATOR.'defaultWeapons.ini');
 
@@ -146,8 +145,8 @@
 
           if ($logic->type == MISSION_LOGIC_TYPE_MODULE) {
             if ($logic->moduleType == MISSION_LOGIC_MODULE_TYPE_CURATOR) {
-              if ($logic->settings['ModuleCurator_F_Owner'])
-                $curatorVariables[] = $logic->settings['ModuleCurator_F_Owner'];
+              if (isset($logic->settings['ModuleCurator_F_Owner']))
+                $this->curatorVariables[] = $logic->settings['ModuleCurator_F_Owner'];
               continue;
             }
 
@@ -182,6 +181,7 @@
         }
       }
 
+      // Cleanup
       unset($unitDefaultWeapons);
     }
 

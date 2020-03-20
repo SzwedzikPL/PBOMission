@@ -8,8 +8,8 @@
       $this->id = $object->attribute('id');
       $this->class = $object->attribute('type');
 
-      if ($object->hasClass('Attributes'))
-        $this->isSimple = (bool) $object->class('Attributes')->attribute('createAsSimpleObject', false);
+      if ($attributes = $object->class('Attributes'))
+        $this->isSimple = (bool) $attributes->attribute('createAsSimpleObject', false);
     }
   }
 ?>

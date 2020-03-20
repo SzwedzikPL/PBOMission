@@ -15,10 +15,33 @@
     public ?string $description;
     public ?string $vehicle;
 
-    function __construct(SQMClass $unitClass) {
+    function __construct(SQMClass $unit) {
       global $unitDefaultWeapons;
 
+      $attributes = $unit->class('Attributes');
+      if (!$attributes) return;
 
+      if (!$attributes->attribute('isPlayable') && !$attributes->attribute('isPlayer')) return;
+      $this->playable = true;
+
+      $this->id = $unit->attribute('id');
+      $this->class = $unit->attribute('type');
+      $this->variable = $attributes->attribute('name');
+      $this->description = $attributes->attribute('description');
+
+      if ($positionInfo = $unit->class('PositionInfo'))
+        $this->position = $positionInfo->attribute('position[]');
+
+      if ($inventory = $attributes->class('Inventory')) {
+        // If Iventory class exists but without primaryWeapon class
+        // inside then it means unit primary weapon is removed
+        if ($primaryWeapon = $attributes->class('primaryWeapon'))
+          $this->primaryWeapon = $primaryWeapon->attribute('name');
+      } else {
+        // If there's no Inventory class inside unit use default weapon
+        if (isset($unitDefaultWeapons[$this->class]))
+          $this->primaryWeapon = $unitDefaultWeapons[$this->class];
+      }
     }
 
     public function export(): array {

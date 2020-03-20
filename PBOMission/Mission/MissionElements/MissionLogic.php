@@ -39,12 +39,9 @@
         return $this->type = MISSION_LOGIC_TYPE_VIRTUAL_UNIT;
       }
 
-      if ($logic->hasClass('CustomAttributes')) {
+      if ($attributes = $logic->class('CustomAttributes')) {
         $this->type = MISSION_LOGIC_TYPE_MODULE;
-
         $settings = array();
-        $attributes = $logic->class('CustomAttributes');
-
         foreach ($attributes->classes as $attribute) {
           $key = $attribute->attribute('property');
           if (!$key || !$attribute->hasClassPath('Value', 'data')) continue;
