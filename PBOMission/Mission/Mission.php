@@ -10,39 +10,42 @@
     public bool $error = false;
     public string $errorReason;
 
-    private string $name;
-    private string $map;
-    private string $description;
-    private string $date;
-    private string $time;
-    private string $author;
-    private array $weather;
-    private array $dependencies;
+    private ?string $name;
+    private ?string $map;
+    private ?string $description;
+    private ?string $date;
+    private ?string $time;
+    private ?string $author;
+    private ?array $weather;
+    private ?array $dependencies;
 
     private array $groups = array();
     private array $markers = array();
-    private array $resistance = array();
+    private array $virtualUnits = array();
+    private ?array $resistance;
     private array $stats = array(
       'units' => 0,
       'groups' => 0,
+      'waypoints' => 0,
       'triggers' => 0,
       'markers' => 0,
       'objects' => 0,
       'simpleObjects' => 0,
       'modules' => 0,
       'aiGenerators' => 0,
-      'attackGenerators' => 0
+      'aiGeneratorsUnits' => 0,
+      'attackGenerators' => 0,
     );
     private int $slotCount = 0;
 
     private bool $curatorPresent = false;
-    private array $curators = array();
+    private bool $headlessPresent = false;
 
     private bool $hasStringtable = false;
     private array $stringtable;
 
     // Temporary values
-    private array $entities = array(); // Calculating links, id => entitie
+    private array $entities = array(); // Calculating links with i.e. vehicles, id => entitie
     private array $unitVariables = array(); // Linking curator modules with units, variable => unit
     private array $curatorVariables = array(); // Variables for linking with units, variable
 
@@ -82,6 +85,9 @@
     private function parseEntities(?SQMCLass $entities) {
       if (!isset($entities)) return;
 
+      global $unitDefaultWeapons;
+      $unitDefaultWeapons = parse_ini_file(__DIR__.DIRECTORY_SEPARATOR.'defaultWeapons.ini');
+
       foreach ($entities->classes as $entitie) {
         if (!$entitie->hasAttribute('dataType')) continue;
         $dataType = $entitie->attribute('dataType');
@@ -94,12 +100,60 @@
         }
 
         if ($dataType == 'Group') {
+          $group = new MissionGroup($entitie);
           $this->stats['groups']++;
+          $this->stats['units'] += $group->unitsCount;
+          $this->stats['waypoints'] += $group->waypointsCount;
+          if (!$group->playable) continue;
+          // If group has playable units
+          $this->groups[] = $group;
+          $this->entities[$group->id] = $group;
+          foreach ($group->playableUnits as $unit) {
+            $this->entities[$unit->id] = $unit;
+            if ($unit->variable) $this->unitVariables[$unit->variable] = $unit;
+          }
+
           continue;
         }
 
         if ($dataType == 'Logic') {
           $logic = new MissionLogic($entitie);
+
+          if ($logic->type == MISSION_LOGIC_TYPE_VIRTUAL_UNIT) {
+            $this->virtualUnits[] = $logic;
+            if ($logic->variable) $this->unitVariables[$logic->variable] = $logic;
+            continue;
+          }
+
+          if ($logic->type == MISSION_LOGIC_TYPE_HEADLESS) {
+            $this->headlessPresent = true;
+            //TODO: Add warning system and check is variable name is correct?
+            continue;
+          }
+
+          if ($logic->type == MISSION_LOGIC_TYPE_MODULE) {
+            if ($logic->moduleType == MISSION_LOGIC_MODULE_TYPE_CURATOR) {
+              if ($logic->settings['ModuleCurator_F_Owner'])
+                $curatorVariables[] = $logic->settings['ModuleCurator_F_Owner'];
+              continue;
+            }
+
+            if ($logic->moduleType == MISSION_LOGIC_MODULE_TYPE_GENAI) {
+              if (isset($logic->settings['a3cs_mm_module_genSoldiers_unitCount']))
+                $this->stats['aiGeneratorsUnits'] += $logic->settings['a3cs_mm_module_genSoldiers_unitCount'];
+
+              $this->stats['aiGenerators']++;
+              continue;
+            }
+
+            if ($logic->moduleType == MISSION_LOGIC_MODULE_TYPE_GENATTACK) {
+              $this->stats['attackGenerators']++;
+              continue;
+            }
+
+            continue;
+          }
+
           continue;
         }
 
@@ -109,16 +163,23 @@
         }
 
         if ($dataType == 'Marker') {
+          $this->markers[] = new MissionMarker($entitie);
           $this->stats['markers']++;
           continue;
         }
       }
+
+      unset($unitDefaultWeapons);
     }
 
     private function parseIntel(?SQMCLass $intel) {
       if (!isset($intel)) return;
 
       $this->name = $this->translate($intel->attribute('briefingName'));
+      $this->resistance = array(
+        'west' => (bool) $intel->attribute('resistanceWest', 1),
+        'east' => (bool) $intel->attribute('resistanceEast', 0)
+      );
 
       if ($intel->hasAttributes('year','month','day')) $this->date = sprintf(
         '%04d-%02d-%02d',
@@ -131,7 +192,6 @@
         $minute = $intel->attribute('minute');
         // Arma saves minutes after 30 as negative values
         if ($minute < 0) $minute = 60 + $minute;
-
         $this->time = sprintf('%s:%s', $intel->attribute('hour'), sprintf("%02d", $minute));
       }
 
@@ -159,10 +219,17 @@
 
     public function export(): array {
       $data = array();
-
       // Simle values
-      foreach(array('name','map','description','author','date','time','weather','dependencies','stats','slotCount','curatorPresent') as $key) {
+      foreach (array('name','map','description','author','date','time','weather',
+      'dependencies','resistance','stats','slotCount','curatorPresent','headlessPresent') as $key) {
         if (isset($this->{$key})) $data[$key] = $this->{$key};
+      }
+      // Object list values
+      foreach (array('groups','virtualUnits','markers') as $key) {
+        if (!$this->{$key}) continue;
+        $data[$key] = array_map(function($element) {
+          return $element->export();
+        }, $this->{$key});
       }
 
       return $data;

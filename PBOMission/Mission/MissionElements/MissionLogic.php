@@ -1,13 +1,80 @@
 <?php
+  define('MISSION_LOGIC_EXPORT_KEYS',
+  array('class','description','curator'));
+
+  define('MISSION_LOGIC_TYPE_UNKNOWN', 0);
+  define('MISSION_LOGIC_TYPE_MODULE', 1);
+  define('MISSION_LOGIC_TYPE_VIRTUAL_UNIT', 2);
+  define('MISSION_LOGIC_TYPE_HEADLESS', 3);
+
+  define('MISSION_LOGIC_MODULE_TYPE_UNKNOWN', 0);
+  define('MISSION_LOGIC_MODULE_TYPE_CURATOR', 1);
+  define('MISSION_LOGIC_MODULE_TYPE_GENAI', 2);
+  define('MISSION_LOGIC_MODULE_TYPE_GENATTACK', 3);
+
   class MissionLogic {
     public int $id;
-    public string $variable;
     public string $class;
-    public bool $playable;
-    public string $description;
+    public int $type = MISSION_LOGIC_TYPE_UNKNOWN;
+    // If playable virtual unit
+    public bool $playable = false;
+    public ?string $variable;
+    public ?string $description;
+    public bool $curator = false;
+    // If module
+    public ?array $settings;
+    public ?int $moduleType;
 
-    function __construct(SQMClass $logicClass) {
+    function __construct(SQMClass $logic) {
+      $this->id = $logic->attribute('id');
+      $this->class = $logic->attribute('type');
+      $this->variable = $logic->attribute('name');
+      $this->description = $logic->attribute('description');
 
+      if ($this->class == 'HeadlessClient_F')
+        return $this->type = MISSION_LOGIC_TYPE_HEADLESS;
+
+      if ($logic->attribute('isPlayable')) {
+        $this->playable = true;
+        return $this->type = MISSION_LOGIC_TYPE_VIRTUAL_UNIT;
+      }
+
+      if ($logic->hasClass('CustomAttributes')) {
+        $this->type = MISSION_LOGIC_TYPE_MODULE;
+
+        $settings = array();
+        $attributes = $logic->class('CustomAttributes');
+
+        foreach ($attributes->classes as $attribute) {
+          $key = $attribute->attribute('property');
+          if (!$key || !$attribute->hasClass('Value')) continue;
+          $valueClass = $attribute->class('Value');
+          if (!$valueClass->hasClass('data')) continue;
+          $settings[$key] = $valueClass->class('data')->attribute('value');
+        }
+        if ($settings) $this->settings = $settings;
+
+        if ($this->class == 'ModuleCurator_F')
+          return $this->moduleType = MISSION_LOGIC_MODULE_TYPE_CURATOR;
+
+        if ($this->class == 'a3cs_mm_module_genSoldiers')
+          return $this->moduleType = MISSION_LOGIC_MODULE_TYPE_GENAI;
+
+        if ($this->class == 'a3cs_mm_module_genAttack')
+          return $this->moduleType = MISSION_LOGIC_MODULE_TYPE_GENATTACK;
+
+        return $this->moduleType = MISSION_LOGIC_MODULE_TYPE_UNKNOWN;
+      }
+    }
+
+    // Called only for virtual units
+    public function export(): array {
+      $data = array();
+
+      foreach (MISSION_LOGIC_EXPORT_KEYS as $key)
+        if (isset($this->{$key})) $data[$key] = $this->{$key};
+
+      return $data;
     }
   }
 ?>
