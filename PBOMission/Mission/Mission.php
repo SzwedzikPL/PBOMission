@@ -73,8 +73,21 @@
         $this->parseEntities($mission->class('Entities'));
       }
 
-      // Process links
-      // TODO: zeus module links, crew links
+      // Process vehicle crew links
+      foreach ($this->groups as $group) {
+        if (!$group->crewLinks) continue;
+
+        foreach ($group->crewLinks as $unitId => $vehicleId) {
+          if (!isset($this->entities[$unitId], $this->entities[$vehicleId])) continue;
+          $this->entities[$unitId]->vehicle = $this->entities[$vehicleId]->class;
+        }
+      }
+
+      // Process curator module owners
+      foreach ($this->curatorVariables as $curatorVariable) {
+        if (!isset($unitVariables[$curatorVariable])) continue;
+        $unitVariables[$curatorVariable]->curator = true;
+      }
 
       // Cleanup temporary data
       unset($this->entities);
@@ -140,7 +153,7 @@
 
             if ($logic->moduleType == MISSION_LOGIC_MODULE_TYPE_GENAI) {
               if (isset($logic->settings['a3cs_mm_module_genSoldiers_unitCount']))
-                $this->stats['aiGeneratorsUnits'] += $logic->settings['a3cs_mm_module_genSoldiers_unitCount'];
+                $this->stats['aiGeneratorsUnits'] += (int) $logic->settings['a3cs_mm_module_genSoldiers_unitCount'];
 
               $this->stats['aiGenerators']++;
               continue;
@@ -176,6 +189,7 @@
       if (!isset($intel)) return;
 
       $this->name = $this->translate($intel->attribute('briefingName'));
+      // true = friendly
       $this->resistance = array(
         'west' => (bool) $intel->attribute('resistanceWest', 1),
         'east' => (bool) $intel->attribute('resistanceEast', 0)
@@ -224,7 +238,7 @@
       'dependencies','resistance','stats','slotCount','curatorPresent','headlessPresent') as $key) {
         if (isset($this->{$key})) $data[$key] = $this->{$key};
       }
-      // Object list values
+      // Object lists
       foreach (array('groups','virtualUnits','markers') as $key) {
         if (!$this->{$key}) continue;
         $data[$key] = array_map(function($element) {

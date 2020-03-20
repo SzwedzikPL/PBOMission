@@ -30,6 +30,16 @@ class SQMClass {
     return isset($this->classes[$key]);
   }
 
+  public function hasClassPath(): bool {
+    $arguments = func_get_args();
+    $currentClass = $this;
+    foreach ($arguments as $key) {
+      if (!$currentClass->hasClass($key)) return false;
+      $currentClass = $currentClass->classes[$key];
+    }
+    return true;
+  }
+
   public function class(string $key): ?SQMClass {
     if (!$this->hasClass($key)) return null;
     return $this->classes[$key];

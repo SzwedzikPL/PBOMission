@@ -47,10 +47,8 @@
 
         foreach ($attributes->classes as $attribute) {
           $key = $attribute->attribute('property');
-          if (!$key || !$attribute->hasClass('Value')) continue;
-          $valueClass = $attribute->class('Value');
-          if (!$valueClass->hasClass('data')) continue;
-          $settings[$key] = $valueClass->class('data')->attribute('value');
+          if (!$key || !$attribute->hasClassPath('Value', 'data')) continue;
+          $settings[$key] = $attribute->class('Value')->class('data')->attribute('value');
         }
         if ($settings) $this->settings = $settings;
 
