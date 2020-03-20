@@ -31,7 +31,7 @@
       'markers' => 0,
       'objects' => 0,
       'simpleObjects' => 0,
-      'modules' => 0,
+      'otherModules' => 0,
       'aiGenerators' => 0,
       'aiGeneratorsUnits' => 0,
       'attackGenerators' => 0,
@@ -120,6 +120,7 @@
           // If group has playable units
           $this->groups[] = $group;
           $this->entities[$group->id] = $group;
+          $this->slotCount += count($group->playableUnits);
           foreach ($group->playableUnits as $unit) {
             $this->entities[$unit->id] = $unit;
             if ($unit->variable) $this->unitVariables[$unit->variable] = $unit;
@@ -133,6 +134,7 @@
 
           if ($logic->type == MISSION_LOGIC_TYPE_VIRTUAL_UNIT) {
             $this->virtualUnits[] = $logic;
+            $this->slotCount++;
             if ($logic->variable) $this->unitVariables[$logic->variable] = $logic;
             continue;
           }
@@ -163,6 +165,7 @@
               continue;
             }
 
+            $this->stats['otherModules']++;
             continue;
           }
 
