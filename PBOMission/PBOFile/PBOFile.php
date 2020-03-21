@@ -61,9 +61,9 @@
       'UNREADABLE_FILE' => 'Błąd odczytu pliku pbo. Sprawdź czy plik nie jest zbinaryzowany lub zapisany w formacie skompresowanym.',
     );
 
-    function __construct(string $filepath) {
+    function __construct(string $filepath, string $filename) {
       $this->filepath = $filepath;
-      $this->name = basename($filepath, '.pbo');
+      $this->name = basename($filename, '.pbo');
       $this->header = new PBOHeader();
 
       $pboContent = file_get_contents($filepath);
@@ -79,7 +79,7 @@
 
       // Calc pbo info
       $this->info = array(
-        'name' => $this->name.'.pbo',
+        'name' => $filename,
         'size' => PBOMissionHelper::getReadableSize(filesize($filepath)),
         'files' => array_map(function($entry) {
           return array(

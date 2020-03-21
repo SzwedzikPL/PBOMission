@@ -1,28 +1,32 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div id="app" class="container-fluid">
+    <MissionViewer :data="data" @reset="resetData" v-if="data" />
+    <Uploader :uploaderPath="uploaderPath" @onData="onData" v-else />
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import Uploader from './components/Uploader.vue';
+import MissionViewer from './components/MissionViewer.vue';
 
 export default {
   name: 'App',
-  components: {
-    HelloWorld
-  }
+  data: () => ({
+    uploaderPath: process.env.VUE_APP_UPLOADER_PATH,
+    data: null
+  }),
+  methods: {
+    resetData() {
+      this.data = null;
+    },
+    onData(data) {
+      this.data = data;
+    }
+  },
+  components: {Uploader, MissionViewer}
 }
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+
 </style>
