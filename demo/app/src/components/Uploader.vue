@@ -120,9 +120,11 @@
   .uploader-progress-box > .progress {
     height: 20px;
   }
-
   .author {
     font-size: 12px;
     opacity: 0.6;
+  }
+  .progress-bar {
+    transition: width 0.1s;
   }
 </style>
