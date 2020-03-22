@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-4">
+  <div class="mt-4 mb-2 mb-xl-5">
     <div class="row">
       <div class="col-12 col-lg-5 col-xl-3">
         <div class="card mb-3">
@@ -129,7 +129,12 @@
         <div class="alert alert-light text-center" style="font-size: 12px;">
           Przetworzono w {{ data.parsingTime }} ms używając {{ data.memoryPeakUsage }} pamięci
           <br /><br />
-          <button type="button" class="btn btn-light" style="font-size: 13px;" @click="reset">Wrzuć inną misję</button>
+          <button type="button" class="btn btn-secondary mr-1" style="font-size: 13px;" @click="reset">
+            <i class="fa fa-repeat"></i> Wrzuć inną misję
+          </button>
+          <a href="https://arma3coop.pl/viewtopic.php?f=33&t=11776" target="_blank" class="btn btn-danger" style="font-size: 13px;">
+            <i class="fa fa-bug"></i> Zgłoś błąd
+          </a>
         </div>
       </div>
     </div>

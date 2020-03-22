@@ -13,6 +13,11 @@
       </form>
       <div class="alert alert-danger alert-dismissible mt-3" role="alert" v-if="error">
         <span v-html="errorMessage"></span>
+        <div class="mt-2 text-center">
+          <a href="https://arma3coop.pl/viewtopic.php?f=33&t=11776" target="_blank" class="btn btn-danger" style="font-size: 13px;">
+            <i class="fa fa-bug"></i> Zgłoś błąd
+          </a>
+        </div>
         <button type="button" class="close" @click="hideError">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -81,7 +86,7 @@
 
           if (!data || typeof data !== 'object' || ((!data.mission || !data.pbo) && data.error === undefined)) {
             $this.error = true;
-            $this.errorMessage = 'Błąd odpowiedzi serwera. <strong>Zgłoś proszę</strong> problem administratorowi poprzez <strong>PW na forum</strong> lub <strong>TS3.</strong>';
+            $this.errorMessage = 'Błąd odpowiedzi serwera. <strong>Zgłoś proszę</strong> problem administratorowi poprzez <strong>przycisk</strong> poniżej (dział na forum), <strong>PW na forum</strong> lub <strong>TS3.</strong>';
             return;
           }
 
