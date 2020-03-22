@@ -67,7 +67,7 @@
                   v-for="paramKey in weatherParamsOrder" v-if="data.mission.weather.forecast[paramKey] !== undefined">
                 {{ weatherParamsNames[paramKey] }}
                 <span class="badge badge-secondary">
-                  {{ getWeatherReadableValue(data.mission.weather.start[paramKey]) }}
+                  {{ getWeatherReadableValue(data.mission.weather.forecast[paramKey]) }}
                 </span>
               </li>
             </ul>
@@ -214,8 +214,8 @@ export default {
       const weather = (data && data.mission) ? data.mission.weather : undefined;
 
       return {
-        start: weather && weather.start && Object.keys(weather.start).length,
-        forecast: weather && weather.forecast && Object.keys(weather.forecast).length,
+        start: !!(weather && weather.start && Object.keys(weather.start).length),
+        forecast: !!(weather && weather.forecast && Object.keys(weather.forecast).length),
       }
     },
     weatherTimeOfChanges() {
@@ -235,7 +235,7 @@ export default {
       this.$emit('reset');
     },
     getWeatherReadableValue(value) {
-      return (value*100).toFixed(2) + '%';
+      return (parseFloat(value)*100).toFixed(2) + '%';
     }
   }
 }
