@@ -13,8 +13,9 @@
       </form>
       <div class="alert alert-danger alert-dismissible mt-3" role="alert" v-if="error">
         <span v-html="errorMessage"></span>
-        <div class="mt-2 text-center">
-          <a href="https://arma3coop.pl/viewtopic.php?f=33&t=11776" target="_blank" class="btn btn-danger" style="font-size: 13px;">
+        <hr>
+        <div class="text-center">
+          <a href="https://arma3coop.pl/viewtopic.php?f=33&t=11776" target="_blank" class="btn btn-danger" style="font-size: 12px;">
             <i class="fa fa-bug"></i> Zgłoś błąd
           </a>
         </div>
