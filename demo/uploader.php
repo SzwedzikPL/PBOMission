@@ -20,12 +20,35 @@
   $mission = new PBOMission($missionFile["tmp_name"], $filename);
   $response = $mission->export();
 
-  if ($mission->error) {
-    //TODO: log error in errors.txt, save mission in folder for examination
-  } else {
-    $response['parsingTime'] = (hrtime(true) - $startTime)/1e+6.' ms';
+  if (!$mission->error) {
+    $response['parsingTime'] = (hrtime(true) - $startTime)/1e+6;
     $response['memoryPeakUsage'] = PBOMissionHelper::getReadableSize(memory_get_peak_usage());
   }
+
+  // End of parsing
+
+  try {
+    $log = '['.date('Y-m-d H:i:s', time()).'] file='.$filename.' ';
+
+    if ($mission->error) {
+      // Move pbo with error for debug
+      if (!is_dir('failed_missions')) mkdir('failed_missions');
+      move_uploaded_file($missionFile["tmp_name"], 'failed_missions'.DIRECTORY_SEPARATOR.$filename);
+      // Log error
+      $log .= 'error='.$mission->errorReason;
+    } else {
+      // Log parsing stats
+      $log .= sprintf(
+        'time=%s memory=%s pbo=%s sqm=%s',
+        $response['parsingTime'],
+        $response['memoryPeakUsage'],
+        $response['pbo']['size'],
+        $response['pbo']['files']['mission.sqm']['size']
+      );
+    }
+
+    file_put_contents('parsing'.($mission->error ? '_error' : '').'.log', $log.PHP_EOL, FILE_APPEND);
+  } catch (Exception $e) {}
 
   print json_encode($response);
 ?>

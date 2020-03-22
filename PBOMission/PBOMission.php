@@ -22,7 +22,9 @@ class PBOMission {
     'XML_ERROR' => 'Błąd parsowania xml (stringtable.xml). Powód: %s'
   );
 
-  function __construct(string $filepath, string $filename) {
+  function __construct(string $filepath, ?string $filename = null) {
+    if (!$filename) $filename = basename($filepath);
+
     $this->pbo = new PBOFile($filepath, $filename);
 
     if ($this->pbo->error) {

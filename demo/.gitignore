@@ -1,2 +1,2 @@
-errors.txt
-logs.txt
+*.log
+failed_missions

@@ -1,13 +1,13 @@
 <template>
   <div id="app" class="container-fluid">
-    <MissionViewer :data="data" @reset="resetData" v-if="data" />
+    <DataViewer :data="data" @reset="resetData" v-if="data" />
     <Uploader :uploaderPath="uploaderPath" @onData="onData" v-else />
   </div>
 </template>
 
 <script>
 import Uploader from './components/Uploader.vue';
-import MissionViewer from './components/MissionViewer.vue';
+import DataViewer from './components/DataViewer.vue';
 
 export default {
   name: 'App',
@@ -23,7 +23,7 @@ export default {
       this.data = data;
     }
   },
-  components: {Uploader, MissionViewer}
+  components: {Uploader, DataViewer}
 }
 </script>
 

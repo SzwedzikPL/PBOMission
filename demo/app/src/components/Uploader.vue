@@ -12,7 +12,7 @@
         </div>
       </form>
       <div class="alert alert-danger alert-dismissible mt-3" role="alert" v-if="error">
-        {{ errorMessage }}
+        <span v-html="errorMessage"></span>
         <button type="button" class="close" @click="hideError">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -78,6 +78,12 @@
           },
         }).then(response => {
           const data = response.data;
+
+          if (!data || typeof data !== 'object' || ((!data.mission || !data.pbo) && data.error === undefined)) {
+            $this.error = true;
+            $this.errorMessage = 'Błąd odpowiedzi serwera. <strong>Zgłoś proszę</strong> problem administratorowi poprzez <strong>PW na forum</strong> lub <strong>TS3.</strong>';
+            return;
+          }
 
           if (data.error) {
             $this.error = true;

@@ -85,7 +85,7 @@
           return array(
             'path' => $entry->filename,
             'size' => PBOMissionHelper::getReadableSize($entry->dataSize),
-            'timestamp' => date('Y-m-d h:i:s',$entry->timestamp)
+            'timestamp' => date('Y-m-d H:i:s',$entry->timestamp)
           );}, $this->header->entries)
       );
     }
