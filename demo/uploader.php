@@ -1,7 +1,7 @@
 <?php
-  $startTime = hrtime(true);
-
   header('Content-Type: application/json');
+
+  $startTime = hrtime(true);
   require_once('../PBOMission/PBOMission.php');
 
   if (!isset($_FILES['missionFile'])) return print json_encode(array(
@@ -21,8 +21,14 @@
   $response = $mission->export();
 
   if (!$mission->error) {
+    $fileHash = md5_file($missionFile["tmp_name"]);
+
+    $response['fileHash'] = $fileHash;
     $response['parsingTime'] = (hrtime(true) - $startTime)/1e+6;
     $response['memoryPeakUsage'] = PBOMissionHelper::getReadableSize(memory_get_peak_usage());
+
+    if (!is_dir('mission_exports')) mkdir('mission_exports');
+    file_put_contents('mission_exports'.DIRECTORY_SEPARATOR.$fileHash.'.json', json_encode($response));
   }
 
   // End of parsing

@@ -13,10 +13,11 @@ export default {
   name: 'App',
   data: () => ({
     uploaderPath: process.env.VUE_APP_UPLOADER_PATH,
-    data: null
+    data: window.mission ? window.mission : null
   }),
   methods: {
     resetData() {
+      window.history.pushState({}, document.title, window.location.href.split('?')[0]);
       this.data = null;
     },
     onData(data) {
