@@ -129,10 +129,10 @@
         <div class="alert alert-light text-center" style="font-size: 12px;">
           Przetworzono w {{ data.parsingTime }} ms używając {{ data.memoryPeakUsage }} pamięci
           <br /><br />
-          <a :href="'?mission='+data.fileHash" target="_blank" class="btn btn-light mr-1" style="font-size: 10px;" v-if="data.fileHash">
+          <a :href="'?mission='+data.fileHash" target="_blank" class="btn btn-secondary mr-1" style="font-size: 10px;" v-if="data.fileHash">
             <i class="fa fa-floppy-o"></i> Zapisz link
           </a>
-          <button type="button" class="btn btn-secondary mr-1" style="font-size: 10px;" @click="reset">
+          <button type="button" class="btn btn-primary mr-1" style="font-size: 10px;" @click="reset">
             <i class="fa fa-repeat"></i> Wrzuć inną misję
           </button>
           <a href="https://arma3coop.pl/viewtopic.php?f=33&t=11776" target="_blank" class="btn btn-danger" style="font-size: 10px;">
