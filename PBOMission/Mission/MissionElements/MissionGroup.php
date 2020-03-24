@@ -1,5 +1,5 @@
 <?php
-  define('MISSION_GROUP_EXPORT_KEYS', array('name','side'));
+  define('MISSION_GROUP_EXPORT_KEYS', array('id','name','side'));
 
   class MissionGroup {
     // All groups

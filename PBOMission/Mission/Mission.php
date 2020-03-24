@@ -68,7 +68,13 @@
 
       if ($mission = $config->class('Mission')) {
         $this->parseIntel($mission->class('Intel'));
+        // Prep unit default weapons array for unit parser
+        global $unitDefaultWeapons;
+        $unitDefaultWeapons = parse_ini_file(__DIR__.DIRECTORY_SEPARATOR.'defaultWeapons.ini');
+        // Parse entities
         $this->parseEntities($mission->class('Entities'));
+        // Cleanup
+        unset($unitDefaultWeapons);
       }
 
       // Process vehicle crew links
@@ -96,13 +102,14 @@
     private function parseEntities(?SQMCLass $entities) {
       if (!isset($entities)) return;
 
-      // Prep unit default weapons array for unit parser
-      global $unitDefaultWeapons;
-      $unitDefaultWeapons = parse_ini_file(__DIR__.DIRECTORY_SEPARATOR.'defaultWeapons.ini');
-
       foreach ($entities->classes as $entitie) {
         if (!$entitie->hasAttribute('dataType')) continue;
         $dataType = $entitie->attribute('dataType');
+
+        if ($dataType == 'Layer') {
+          $this->parseEntities($entitie->class('Entities'));
+          continue;
+        }
 
         if ($dataType == 'Object') {
           $object = new MissionObject($entitie);
@@ -183,9 +190,6 @@
           continue;
         }
       }
-
-      // Cleanup
-      unset($unitDefaultWeapons);
     }
 
     private function parseIntel(?SQMCLass $intel) {

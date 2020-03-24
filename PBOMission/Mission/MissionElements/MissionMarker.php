@@ -1,7 +1,7 @@
 <?php
 
   define('MISSION_MARKER_EXPORT_KEYS',
-  array('text','class','color','position','angle'));
+  array('id','text','class','color','position','angle'));
 
   class MissionMarker {
     public int $id;

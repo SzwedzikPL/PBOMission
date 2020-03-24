@@ -1,6 +1,6 @@
 <?php
   define('MISSION_LOGIC_EXPORT_KEYS',
-  array('class','description','curator'));
+  array('id','class','description','curator'));
 
   define('MISSION_LOGIC_TYPE_UNKNOWN', 0);
   define('MISSION_LOGIC_TYPE_MODULE', 1);

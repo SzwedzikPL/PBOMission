@@ -1,6 +1,6 @@
 <?php
   define('MISSION_UNIT_EXPORT_KEYS',
-  array('class','description','position','primaryWeapon','vehicle','curator'));
+  array('id','class','description','position','primaryWeapon','vehicle','curator'));
 
   class MissionUnit {
     // All units
@@ -35,7 +35,7 @@
       if ($inventory = $attributes->class('Inventory')) {
         // If Iventory class exists but without primaryWeapon class
         // inside then it means unit primary weapon is removed
-        if ($primaryWeapon = $attributes->class('primaryWeapon'))
+        if ($primaryWeapon = $inventory->class('primaryWeapon'))
           $this->primaryWeapon = $primaryWeapon->attribute('name');
       } else {
         // If there's no Inventory class inside unit use default weapon
