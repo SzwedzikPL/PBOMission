@@ -223,7 +223,7 @@
           if ($intel->hasAttribute($key)) $weather[$typeKey][$configKey] = $intel->attribute($key);
         }
       }
-      // Arma saves duration of weather changes in seconds (but sometimes is float "becouse Arma")
+      // Arma saves duration of weather changes in seconds (but sometimes is float "because Arma")
       // Range from 30min to 8h
       if ($intel->hasAttribute('timeOfChanges'))
         $weather['timeOfChanges'] = gmdate("H:i:s", floor($intel->attribute('timeOfChanges')));
@@ -240,7 +240,7 @@
 
     public function export(): array {
       $data = array();
-      // Simle values
+      // Simple values
       foreach (array('name','map','description','author','date','time','weather',
       'dependencies','resistance','stats','slotCount','curatorPresent','headlessPresent') as $key) {
         if (isset($this->{$key})) $data[$key] = $this->{$key};
